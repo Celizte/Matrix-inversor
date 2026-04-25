@@ -1,0 +1,7 @@
+{
+  "disable_ai": true,
+  "project_name": "Matrix Inversor",
+  "file_types": {
+  	"C":["C", "H"]
+  }
+}
