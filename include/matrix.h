@@ -19,10 +19,15 @@ Fraction div_fraction	(Fraction n1, Fraction n2);		// Divides a fraction with an
 Fraction simplify 		(Fraction n);					// Simplifies the original fraction
 Fraction to_fraction	(int n, Fraction d);			// Turns a whole number into a fraction, needs a denominator
 
+Fraction determinant(const Matrix *self);
+
 bool is_int				(Fraction n);					// Checks if the fraction is an integer, pairs well with to_int
 int to_int				(Fraction n);					// Converts a fraction into a whole number
 
 int gcd					(Fraction n);					// Function to find the gcd becuase uhhhh
+
+void print_fraction		(const Fraction n);				// Prints the fraction
+void print_row			(size_t size, Fraction n[size]);// Prints an entire row of fractions
 
 Matrix *create_matrix(size_t size, Fraction fractions[size][size]);
 void free_matrix(Matrix *self);
@@ -34,5 +39,6 @@ void print_process(const Matrix *oldMatrix, const Matrix *newMatrix);
 void invert_matrix(Matrix *self);						// The ACTUAL function we all fucking love
 void modify_matrix_row
 	(Matrix *self, Fraction *fractions, int row);		// Modifies row of matrix
+
 
 #endif

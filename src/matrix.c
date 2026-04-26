@@ -4,6 +4,41 @@
 #include <stdlib.h>
 #include <stddef.h>
 
+Fraction sum_fraction(Fraction n1, Fraction n2) {
+	if (n1.denominator == 0)
+		return n2;
+	else if (n2.denominator == 0)
+		return n1;
+
+	if (n1.denominator == n2.denominator)
+		return simplify((Fraction) {
+			.numerator		= n1.numerator + n2.numerator,
+			.denominator	= n1.denominator
+		});
+
+	return simplify((Fraction) {
+		.numerator		= (n1.numerator * n2.denominator) + (n2.numerator * n1.denominator),
+		.denominator	= n1.denominator * n2.denominator
+	});
+}
+
+Fraction sub_fraction(Fraction n1, Fraction n2) {
+	if (n1.denominator == 0)
+		return n2;
+
+	if (n1.denominator == n2.denominator)
+		return simplify((Fraction) {
+			.numerator		= n1.numerator - n2.numerator,
+			.denominator	= n1.denominator
+		});
+
+	return simplify((Fraction) {
+		.numerator		= (n1.numerator * n2.denominator) - (n2.numerator * n1.denominator),
+		.denominator	= n1.denominator * n2.denominator
+	});
+
+}
+
 Fraction mult_fraction(Fraction n1, Fraction n2) {
 	return simplify((Fraction) {
 		.numerator 		= n1.numerator * n2.numerator,
@@ -27,6 +62,11 @@ Fraction simplify(Fraction n) {
 	int gc = gcd(n);
 
 	Fraction f = n;
+	if (f.denominator < 0) {
+		f.numerator *= -1;
+		f.denominator *= -1;
+	}
+
 	f.numerator /= gc;
 	f.denominator /= gc;
 
@@ -38,24 +78,49 @@ Fraction to_fraction(int n, Fraction d) {
 }
 
 bool is_int(Fraction n) {
-	return (n.numerator == n.denominator);
+	Fraction f = simplify(n);
+
+	if (f.denominator == 0)
+		return false;
+
+	return (f.numerator % f.denominator) == 0 ? true : false;
 }
 
 int to_int(Fraction n) {
-	return n.numerator;
+	Fraction f = simplify(n);
+
+	if (f.denominator == 0)
+		return 0;
+
+	if (!is_int(f))
+		return f.numerator;
+
+	return f.numerator / f.denominator;
 }
 
 int gcd(Fraction n) {
 	int nm = abs(n.numerator);
 	int dm = abs(n.denominator);
 
-	while (nm != 0) {
+	while (dm != 0) {
 		int tmp = dm;
 		dm = nm % dm;
 		nm = tmp;
 	}
 
 	return nm;
+}
+
+void print_fraction(const Fraction n) {
+	if (is_int(n))
+		printf(" [%d] ", to_int(n));
+	else
+		printf(" [%d / %d] ", n.numerator, n.denominator);
+}
+
+void print_row(size_t size, Fraction n[size]) {
+	for (int i = 0; i < size; i++)
+		print_fraction(n[i]);
 }
 
 struct Matrix {
@@ -112,23 +177,17 @@ void print_matrix(const Matrix *matrix) {
 	size_t size = matrix->size;
 	Fraction **fractions = matrix->fractions;
 
-	printf("|-----------------------------------------------|");
+	printf("|-----------------------------------------------|\n");
 
 	for (size_t h = 0; h < size; h++) {
 		printf("|");
-		for (size_t j = 0; j < size; j++) {
-			Fraction f = fractions[h][j];
 
-			if (is_int(f))
-				printf(" [%d] ", to_int(f));
-			else
-				printf(" [%d/%d] ", f.numerator, f.denominator);
-		}
+		print_row(size, fractions[h]);
 
-		printf("|\n");
+		printf("\n");
 	}
 
-	printf("|-----------------------------------------------|");
+	printf("|-----------------------------------------------|\n");
 }
 
 
@@ -173,6 +232,10 @@ void invert_matrix(Matrix *self) {
 	bool complete = false;
 	int onesIndex = 0;
 	while (!complete) {
+		if (onesIndex >= size) {
+			complete = true;
+			break;
+		}
 
 		// Checks if the number at the index ('1,1' || '2,2' || '3,3' || ...) is '1'
 		// If so, then it skips to avoid doing extra unnecessary calculations (not that it matters lol)
@@ -183,7 +246,7 @@ void invert_matrix(Matrix *self) {
 
 
 		// Divides entire row by the number at the ones position
-		Fraction divisor = fractions[onesIndex][onesIndex];
+		Fraction divisor = simplify(fractions[onesIndex][onesIndex]);
 		for (int i = 0; i < size; i++) {
 			Fraction f = fractions[onesIndex][i];
 			f = div_fraction(f, divisor);
@@ -202,18 +265,116 @@ void invert_matrix(Matrix *self) {
 		modify_matrix_row(matrix, fractions[onesIndex], onesIndex);
 		modify_matrix_row(endMatrix, identity[onesIndex], onesIndex);
 
-		printf("1 at (%d, %d) gotten:\n", onesIndex, onesIndex);
+		printf("\n1 at (%d, %d) gotten by multiplying *", onesIndex, onesIndex);
+		print_fraction(fractions[onesIndex][onesIndex]);
+		printf("\n");
+
 		print_matrix(matrix);
+		print_matrix(endMatrix);
 
 	eliminate_column: // This assumes that the number at index 'onesIndex' is a '1'
 
+		printf("\nEliminating 0s:\n");	// This is here so i can declare variables after the label
+
+		Fraction ogRow[size];
+		Fraction ogIdt[size];
+
+		for (int i = 0; i < size; i++) {
+			if (i == onesIndex)
+				continue;
+
+			Fraction multiplier = simplify(fractions[i][onesIndex]);
+			multiplier.numerator = -multiplier.numerator;
+
+			printf("Eliminating 0 at index [%d, %d] with mult:", i, onesIndex);
+			print_fraction(multiplier);
+			printf("\n");
+
+			for (int i = 0; i < size; i++) {
+				ogRow[i] = fractions[onesIndex][i];
+				ogIdt[i] = identity[onesIndex][i];
+			}
+
+			for (int j = 0; j < size; j++) {
+				ogRow[j] = mult_fraction(ogRow[j], multiplier);
+				ogIdt[j] = mult_fraction(ogIdt[j], multiplier);
+			}
+
+			// Print the results
+			print_row(size, ogRow);
+			printf(" | ");
+			print_row(size, ogIdt);
+			printf(" + \n");
+
+			print_row(size, fractions[i]);
+			printf(" | ");
+			print_row(size, identity[i]);
+			printf("\n");
+
+			// Do the math then print it
+			for (int j = 0; j < size; j++) {
+				fractions[i][j] = sum_fraction(ogRow[j], fractions[i][j]);
+				identity[i][j]	= sum_fraction(ogIdt[j], identity[i][j]);
+			}
+
+			printf("-------------------------------------------\n");
+			print_row(size, fractions[i]);
+			printf(" | ");
+			print_row(size, identity[i]);
+			printf("\n");
+			printf("-------------------------------------------\n\n");
+
+			modify_matrix_row(matrix, fractions[i], i);
+			modify_matrix_row(endMatrix, identity[i], i);
+		}
+
+		printf("Matrix number %d:\n", onesIndex+1);
+		print_matrix(matrix);
+		print_matrix(endMatrix);
 
 		onesIndex++;
+
+		if (onesIndex >= size)
+			complete = true;
 	}
+
+	printf("Final Matrix: \n");
+	print_matrix(matrix);
+	print_matrix(endMatrix);
+
+	free_matrix(matrix);
+	free_matrix(endMatrix);
 }
 
 void modify_matrix_row(Matrix *self, Fraction *fractions, int row) {
 	for (size_t i = 0; i < self->size; i++) {
 		self->fractions[row][i] = fractions[i];
 	}
+}
+
+// This function will only really work with a 2x2, i don't want to figure out the rest
+Fraction determinant(const Matrix *self) {
+	Fraction D = {0, 0};
+	size_t size = self->size;
+
+	Fraction **f = self->fractions;
+
+	if (size == 2) {
+		D = (
+			sub_fraction(
+				mult_fraction(f[0][0], f[1][1]),
+				mult_fraction(f[0][1], f[1][0])
+			)
+		);
+
+		return D;
+	}
+
+
+	for (int i = 0; i < size; i++) {
+
+	}
+
+
+	return D;
 }
