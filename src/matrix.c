@@ -337,6 +337,7 @@ void invert_matrix(Matrix *self) {
 		}
 
 		printf("Matrix number %lu:\n", onesIndex);
+		print_matrix(matrix);
 		print_matrix(endMatrix);
 
 
