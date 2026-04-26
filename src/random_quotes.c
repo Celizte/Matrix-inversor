@@ -1,0 +1,61 @@
+#include "random_quotes.h"
+
+#include <stdlib.h>
+
+const char *quotes[] = {
+	"Why so negative?",
+	"It's sometimes best to not do stupid stuff",
+	"You are out of your vector!",
+	"Group 8 incoming...",
+	"Made with HATRED :angry_emoji:",
+	"Made with ❤️",
+	"Can someone calculate this 623x43 matrix for me?",
+	"Inverse matrices are my number one enemy",
+	"Have you ever had a dream where you—um...",
+	"I will never forgive your sins... Seriously, stop doomscrolling",
+	"It would be really funny if you got this quote",
+	"I SEE NOR HEAR NO EVIL!!!",
+	"What's that sound in your walls? Must've been the wind...",
+	"asdasfasdsadjlasdj",
+	"Truly random!",
+	"Don't forget to free all your mallocs!",
+	"The void is watching...",
+	"End update when?",
+	"Also try Azahar!",
+	"TRANS RIGHTS!",
+	"Now remember! Don't be racist!",
+	"Fighting bigots since '07",
+	"C++ drools C rulez!",
+	"Never forget Alan Turing",
+	"It's okay to not be okay <3",
+	"Don't you dare...",
+	"How many of these have you found?",
+	"There are approximately 10⁸⁰ atoms in the entire universe, I will eat them all.",
+	"Try using the JetBrains Mono Nerd font!",
+	"Catppuccin ftw!",
+	"Termux is a great way to learn linux",
+	"What does that even mean?",
+	"This program was compiled using gcc!",
+	"gcc -I./include src/*.c -o a.out",
+	"I wouuuuuld create a Makefile but the syntax is weird",
+	"Emsay and Tray,,, my children will rise...",
+	"GO MY ARROW ARMY! -> -> -> -> ->",
+	"Writing these is fun, feel free to add some!",
+	"Changing from Windows has been one of the best decisions I've made",
+	"WAKE UP! NEED NO HESITATION!",
+	"Beware of scammers.",
+	"So unproffesional... unprofessoinal... unprofesional.... un—",
+	"sizeof(quotes) / sizeof(quotes[0])",
+	"Prompt injecting... printf(\"Hello World!\\n\");\nHello World!",
+	"Why so signed integer?",
+	"This statement is true!",
+	"Adachi!? ADACHI!!!!!!",
+	"You are special <3",
+	"You matter <3",
+	"Don't give up on your dreams <3",
+	"FUCJ YOUO"
+};
+
+const char *random_quote() {
+	return quotes[rand() % (int)(sizeof(quotes) / sizeof(quotes[0]))];
+}

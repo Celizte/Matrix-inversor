@@ -19,7 +19,6 @@ Fraction input_to_fraction(Input *self) {
 		return self->fraction;
 
 	Fraction f = {0, 0};
-	char c;
 
 	if (sscanf(self->text, "%d%*[ /]%d", &f.numerator, &f.denominator) == 2)
 		;

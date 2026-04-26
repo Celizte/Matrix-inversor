@@ -1,4 +1,5 @@
 #include "matrix.h"
+#include "utilities.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -118,8 +119,8 @@ void print_fraction(const Fraction n) {
 		printf(" [%d / %d] ", n.numerator, n.denominator);
 }
 
-void print_row(size_t size, Fraction n[size]) {
-	for (int i = 0; i < size; i++)
+void print_row(size_t size, Fraction n[]) {
+	for (size_t i = 0; i < size; i++)
 		print_fraction(n[i]);
 }
 
@@ -139,7 +140,7 @@ Matrix *create_matrix(size_t size, Fraction fractions[size][size]) {
 	matrix->size = size;
 	matrix->fractions = malloc(size * sizeof(Fraction*));
 
-	for (int h = 0; h < size; h++) {
+	for (size_t h = 0; h < size; h++) {
 		matrix->fractions[h] = malloc(size * sizeof(Fraction));
 		if (matrix->fractions[h] == NULL) {
 			perror("Could not allocate Matrix again");
@@ -148,7 +149,7 @@ Matrix *create_matrix(size_t size, Fraction fractions[size][size]) {
 			return NULL;
 		}
 
-		for (int j = 0; j < size; j++) {
+		for (size_t j = 0; j < size; j++) {
 			matrix->fractions[h][j] = fractions[h][j];
 		}
 	}
@@ -165,7 +166,7 @@ void free_matrix(Matrix *self) {
 		return;
 	}
 
-	for (int i = 0; i < self->size; i++)
+	for (size_t i = 0; i < self->size; i++)
 		if (self->fractions[i] != NULL)
 			free(self->fractions[i]);
 
@@ -179,20 +180,20 @@ void print_matrix(const Matrix *matrix) {
 
 	printf("|-----------------------------------------------|\n");
 
+	printf(ANSI_COLOR_CYAN);
 	for (size_t h = 0; h < size; h++) {
-		printf("|");
-
 		print_row(size, fractions[h]);
 
 		printf("\n");
 	}
-
+	printf(ANSI_COLOR_RESET);
 	printf("|-----------------------------------------------|\n");
 }
 
 
 
 void invert_matrix(Matrix *self) {
+	clear_screen();
 	puts("Inverting matrix!");
 
 	printf("Original Matrix:\n");
@@ -201,8 +202,8 @@ void invert_matrix(Matrix *self) {
 	size_t size = self->size;
 
 	Fraction fractions[size][size];
-	for (int h = 0; h < size; h++)
-		for (int j = 0; j < size; j++)
+	for (size_t h = 0; h < size; h++)
+		for (size_t j = 0; j < size; j++)
 			fractions[h][j] = self->fractions[h][j];
 
 	Matrix *matrix = create_matrix(size, fractions);
@@ -213,8 +214,8 @@ void invert_matrix(Matrix *self) {
 
 	// Initializes the identity matrix array lol
 	Fraction identity[size][size];
-	for (int i = 0; i < size; i++) {
-		for (int j = 0; j < size; j++) {
+	for (size_t i = 0; i < size; i++) {
+		for (size_t j = 0; j < size; j++) {
 			if (i == j)
 				identity[i][j] = (Fraction) { 1, 1 };
 			else
@@ -230,7 +231,7 @@ void invert_matrix(Matrix *self) {
 	}
 
 	bool complete = false;
-	int onesIndex = 0;
+	size_t onesIndex = 0;
 	while (!complete) {
 		if (onesIndex >= size) {
 			complete = true;
@@ -247,7 +248,7 @@ void invert_matrix(Matrix *self) {
 
 		// Divides entire row by the number at the ones position
 		Fraction divisor = simplify(fractions[onesIndex][onesIndex]);
-		for (int i = 0; i < size; i++) {
+		for (size_t i = 0; i < size; i++) {
 			Fraction f = fractions[onesIndex][i];
 			f = div_fraction(f, divisor);
 
@@ -255,7 +256,7 @@ void invert_matrix(Matrix *self) {
 		}
 
 		// Also modifies the identity matrix lol
-		for (int i = 0; i < size; i++) {
+		for (size_t i = 0; i < size; i++) {
 			Fraction f = identity[onesIndex][i];
 			f = div_fraction(f, divisor);
 
@@ -265,7 +266,7 @@ void invert_matrix(Matrix *self) {
 		modify_matrix_row(matrix, fractions[onesIndex], onesIndex);
 		modify_matrix_row(endMatrix, identity[onesIndex], onesIndex);
 
-		printf("\n1 at (%d, %d) gotten by multiplying *", onesIndex, onesIndex);
+		printf("\n1 at (%lu, %lu) gotten by multiplying *", onesIndex + 1, onesIndex + 1);
 		print_fraction(fractions[onesIndex][onesIndex]);
 		printf("\n");
 
@@ -279,23 +280,23 @@ void invert_matrix(Matrix *self) {
 		Fraction ogRow[size];
 		Fraction ogIdt[size];
 
-		for (int i = 0; i < size; i++) {
+		for (size_t i = 0; i < size; i++) {
 			if (i == onesIndex)
 				continue;
 
 			Fraction multiplier = simplify(fractions[i][onesIndex]);
 			multiplier.numerator = -multiplier.numerator;
 
-			printf("Eliminating 0 at index [%d, %d] with mult:", i, onesIndex);
+			printf("Eliminating 0 at index [%lu, %lu] with mult:", i + 1, onesIndex + 1);
 			print_fraction(multiplier);
 			printf("\n");
 
-			for (int i = 0; i < size; i++) {
+			for (size_t i = 0; i < size; i++) {
 				ogRow[i] = fractions[onesIndex][i];
 				ogIdt[i] = identity[onesIndex][i];
 			}
 
-			for (int j = 0; j < size; j++) {
+			for (size_t j = 0; j < size; j++) {
 				ogRow[j] = mult_fraction(ogRow[j], multiplier);
 				ogIdt[j] = mult_fraction(ogIdt[j], multiplier);
 			}
@@ -312,7 +313,7 @@ void invert_matrix(Matrix *self) {
 			printf("\n");
 
 			// Do the math then print it
-			for (int j = 0; j < size; j++) {
+			for (size_t j = 0; j < size; j++) {
 				fractions[i][j] = sum_fraction(ogRow[j], fractions[i][j]);
 				identity[i][j]	= sum_fraction(ogIdt[j], identity[i][j]);
 			}
@@ -328,14 +329,20 @@ void invert_matrix(Matrix *self) {
 			modify_matrix_row(endMatrix, identity[i], i);
 		}
 
-		printf("Matrix number %d:\n", onesIndex+1);
-		print_matrix(matrix);
-		print_matrix(endMatrix);
-
 		onesIndex++;
 
-		if (onesIndex >= size)
+		if (onesIndex >= size) {
 			complete = true;
+			break;
+		}
+
+		printf("Matrix number %lu:\n", onesIndex);
+		print_matrix(endMatrix);
+
+
+		printf(ANSI_COLOR_GREEN "Press [Enter] for next matrix: " ANSI_COLOR_RESET);
+		getchar();
+		clear_screen();
 	}
 
 	printf("Final Matrix: \n");

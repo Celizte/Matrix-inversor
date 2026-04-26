@@ -27,7 +27,7 @@ int to_int				(Fraction n);					// Converts a fraction into a whole number
 int gcd					(Fraction n);					// Function to find the gcd becuase uhhhh
 
 void print_fraction		(const Fraction n);				// Prints the fraction
-void print_row			(size_t size, Fraction n[size]);// Prints an entire row of fractions
+void print_row			(size_t size, Fraction n[]);// Prints an entire row of fractions
 
 Matrix *create_matrix(size_t size, Fraction fractions[size][size]);
 void free_matrix(Matrix *self);
